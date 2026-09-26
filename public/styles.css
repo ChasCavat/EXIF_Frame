@@ -1,0 +1,729 @@
+/* ============================================================================
+   设计 token —— 取自 DESIGN.md（Claude / Anthropic 市场站设计系统）
+   暖奶油画布 + 珊瑚色 CTA + 深色产品面；衬线标题 + 人文无衬线正文。
+   规则：颜色一律走变量，不在下面写死 hex。
+   ========================================================================== */
+:root {
+  /* 品牌 & 强调 */
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --primary-disabled: #e6dfd8;
+
+  /* 文字 */
+  --ink: #141413;
+  --body: #3d3d3a;
+  --body-strong: #252523;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
+
+  /* 分隔线 */
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+
+  /* 表面 */
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-cream-strong: #e8e0d2;
+
+  /* 深色面 */
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+
+  --error: #c64545;
+
+  /* Copernicus / StyreneB 是 Anthropic 授权字体，用 DESIGN.md 记的替代品。
+     CJK 侧补宋体族，否则衬线标题的中文会掉到默认无衬线。 */
+  --font-display: "Copernicus", "Tiempos Headline", "Cormorant Garamond",
+    "EB Garamond", Garamond, "Source Han Serif SC", "Noto Serif SC",
+    "Songti SC", "SimSun", serif;
+  --font-sans: "StyreneB", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 圆角 */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 9999px;
+
+  /* 微投影：这套系统以「色块分层」为主，阴影极少 */
+  --shadow-soft: 0 1px 3px rgba(20, 20, 19, .08);
+  --shadow-pop: 0 8px 24px rgba(20, 20, 19, .12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* 整页不滚动：高度锁死在一屏内，滚动分别交给设置面板和预览画布。
+   body 当定高列容器用，.layout 吃掉 header 以下的全部高度。 */
+body {
+  font-family: var(--font-sans);
+  background: var(--canvas);
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============================== 顶栏 ============================== */
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  flex: none;
+  min-height: 64px;
+  padding: 14px 32px;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline);
+}
+.app-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -.3px;
+  color: var(--ink);
+}
+/* ============================== 布局 ============================== */
+.layout {
+  display: flex;
+  gap: 24px;
+  padding: 24px 32px 48px;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  /* 必须显式压掉 flex 子项的默认最小高度（内容高），否则面板永远被内容撑开，
+     永远够不着滚动条 */
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================== 设置面板 ============================== */
+/* 面板现在是滚动容器：内容不足时仍只包住内容（max-height 而非 height），
+   超出才出滚动条。下拉菜单因此改用 fixed 定位溢出面板，见 .select-menu。 */
+.panel {
+  width: 384px;
+  flex: 0 0 auto;
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+.panel-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+/* ============================== 分区 ============================== */
+.section {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+/* caption-uppercase：12px / 500 / 1.5px 字距 */
+.section h2 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.section-head h2 { margin: 0; white-space: nowrap; }
+
+/* ============================== 输入 ============================== */
+.field {
+  display: block;
+  margin-bottom: 12px;
+}
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* 带勾选框的标签行：方框紧跟在文字后面（文字在前，所以行首对齐即可）。
+   方框用 <button> 而不是 <input type="checkbox"> 是有原因的 —— label 的关联对象
+   是它内部第一个可标注后代，塞个真 checkbox 进来会把这个位置占掉，
+   「点标签聚焦下面的输入框」就失效了。button 属于可交互内容，不参与 label 关联。 */
+.label-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* checkbox：16px 方框，勾中只多一个珊瑚色的勾 —— 方框本身不填色。
+   填一块珊瑚底再放个白勾，在这套奶油界面里是一块实心色斑，比勾本身抢眼；
+   勾选框要传达的只是「这项画不画进水印」，一个勾就够了。
+   状态只认 aria-checked，视觉与读屏走同一份真相。 */
+.cb {
+  flex: none;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xs);
+  background: var(--canvas);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+/* 勾 = 一个只有右/下边框的小方块转 45°。transform-origin 默认落在它自己的外框中心，
+   所以 left/top 取「内框中心 − 勾外框半宽/半高」，转完正好落在方框正中：
+   内框 14×14 → 中心 (7,7)；勾外框 5×9 → 半宽 2.5 / 半高 4.5。 */
+.cb::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 2.5px;
+  width: 3.5px;
+  height: 7.5px;
+  border: solid var(--primary);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform .12s;
+}
+.cb[aria-checked="true"]::after { transform: rotate(45deg) scale(1); }
+/* 描边留给 hover 当反馈，勾选态不改框 —— 免得「选中」和「鼠标悬停」看起来一样重 */
+.cb:hover { border-color: var(--primary); }
+.cb:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* 关掉的字段：输入框保留可编辑（值还在、EXIF 照写），只是整体压暗，
+   提示「这项不会出现在水印里」。
+   用子选择器而不是后代选择器：相机品牌那一栏内嵌了「添加品牌」表单，
+   后代选择器会把表单自己的标签和输入框一起压暗。 */
+.field.is-off > .field-label { color: var(--muted-soft); }
+.field.is-off > input[type="text"],
+.field.is-off > .select input[type="text"] {
+  color: var(--muted-soft);
+  background: var(--surface-soft);
+}
+
+/* text-input：canvas 底 + 描边，40px 高，8px 圆角 */
+.field input[type="text"],
+.combobox input[type="text"] {
+  width: 100%;
+  height: 40px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input[type="text"]::placeholder,
+.combobox input[type="text"]::placeholder { color: var(--muted-soft); }
+
+/* text-input-focused：珊瑚描边 + 15% 珊瑚外环 */
+.field input[type="text"]:focus,
+.combobox input[type="text"]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(204, 120, 92, .15);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+/* file-input：原生控件是系统灰按钮，在奶油底上很突兀 —— 用 token 重绘「选择文件」 */
+.field input[type="file"] {
+  width: 100%;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--muted);
+}
+.field input[type="file"]::file-selector-button {
+  height: 32px;
+  margin-right: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.field input[type="file"]::file-selector-button:hover {
+  background: var(--surface-card);
+  border-color: var(--surface-cream-strong);
+}
+
+/* ============================== 下拉 ============================== */
+.combobox { position: relative; }
+.combobox input[type="text"] { padding-right: 40px; }
+
+/* 选中品牌后输入框左侧让出缩略图的位置：14（输入框自身的左内边距，缩略图就摆在这）
+   + 52（缩略图宽）+ 10（与下拉行相同的图文间距）。
+   方块本身的样式在下面 .brand-thumb 那一段，两处共用同一条规则。 */
+.combobox.has-icon input[type="text"] { padding-left: 76px; }
+
+.chev-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--r-sm);
+  transition: color .15s, background .15s;
+}
+.chev-btn:hover { color: var(--ink); background: var(--surface-card); }
+.chev-btn svg { transition: transform .18s ease; }
+.select.open .chev-btn svg { transform: rotate(180deg); }
+
+/* 下拉是 fixed 定位：面板现在是滚动容器，绝对定位的下拉会被面板裁掉，
+   而字体列表有几百项、最高 460px，必须能溢出面板显示。
+   代价是坐标不能再由 CSS 算 —— top / left / width / max-height 全部由
+   placeSelectMenu() 按输入框的视口位置写行内样式，这里只留一个「希望的最大高度」。 */
+.select-menu {
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+.select.open .select-menu { display: block; }
+/* 系统字体可能有上百个，字体下拉给足高度 */
+#fontMenu { max-height: min(56vh, 460px); }
+
+.select-menu li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  color: var(--ink);
+}
+.select-menu li:hover { background: var(--surface-soft); }
+/* category-tab-active 的语义：选中态用比画布深一档的奶油色，不用彩色高亮 */
+.select-menu li.selected { background: var(--surface-card); }
+.select-menu li.empty {
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: default;
+}
+.select-menu li.empty:hover { background: transparent; }
+
+/* 用 last-of-type 而不是 last-child：带「移除」按钮的条目里按钮排在名称之后，
+   last-child 会选不中名称 span，导致自定义品牌/字体的名称字号与其它条目不一致 */
+.select-menu li span:last-of-type { font-size: 14px; }
+
+.select-menu li .brand-remove {
+  margin-left: auto;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--muted-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+.select-menu li .brand-remove:hover { color: var(--error); background: var(--surface-cream-strong); }
+
+.select-menu li.group-title {
+  padding: 10px 10px 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-soft);
+  letter-spacing: 1.5px;
+  cursor: default;
+}
+.select-menu li.group-title:hover { background: transparent; }
+.select-menu li.group-title:first-child { padding-top: 2px; }
+
+/* 缩略图：品牌 Logo / 字体预览 / 输入框里的当前品牌共用一枚奶油小方块。
+   .combo-icon 也在这条规则里 —— 输入框选中的品牌和下拉行里那一条是同一个东西，
+   同一张图、同一尺寸、同一底色，只是换个位置摆（见下方绝对定位那条）。 */
+.brand-thumb,
+.font-preview,
+.combo-icon {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.brand-thumb img,
+.combo-icon img { max-height: 18px; max-width: 44px; object-fit: contain; }
+.brand-thumb .brand-thumb-fallback {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* 输入框里那枚缩略图：绝对定位到输入框左侧垂直居中，没选中时不占位置。
+   必须排在上面那条共用规则之后 —— 两者特异性相同，display 靠顺序定胜负。 */
+.combo-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  pointer-events: none;              /* 点在缩略图上要能聚焦输入框 */
+}
+.combobox.has-icon .combo-icon { display: inline-flex; }
+.font-preview {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* ============================== 滑块 ============================== */
+.slider-field { display: block; margin-bottom: 14px; }
+.slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.slider-label { font-size: 13px; font-weight: 500; color: var(--muted); }
+.slider-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background:
+    linear-gradient(var(--primary), var(--primary)) 0 0 / var(--fill, 40%) 100% no-repeat,
+    var(--surface-cream-strong);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--canvas);
+  border: 2px solid var(--primary);
+  box-shadow: var(--shadow-soft);
+  cursor: grab;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--canvas);
+  border: 2px solid var(--primary);
+  cursor: grab;
+}
+
+/* ============================== 分段控件 ============================== */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--surface-cream-strong);
+  padding: 4px;
+  border-radius: var(--r-md);
+}
+.seg-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.seg-btn.active {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+/* 模板段下面追加的「图标颜色」，只在深色模板出现 */
+.logo-ink { margin-top: 16px; }
+.logo-ink .seg { margin-bottom: 6px; }
+
+/* ============================== 按钮 ============================== */
+.btn {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(204, 120, 92, .15);
+}
+.btn:disabled {
+  background: var(--primary-disabled);
+  border-color: transparent;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:not(:disabled):hover { background: var(--primary-active); }
+
+.btn-ghost {
+  background: var(--canvas);
+  border-color: var(--hairline);
+  color: var(--ink);
+}
+.btn-ghost:not(:disabled):hover { background: var(--surface-card); }
+
+.btn-stack { display: grid; gap: 8px; margin-top: 12px; }
+
+/* 行内小按钮。双类名是为了压过 .btn 的 width/height —— 同特异度按源码顺序
+   决胜，而 .btn 在本文件靠后，写单类名的话 width:auto 会被吃掉。 */
+.btn.btn-reset,
+.btn.btn-fill,
+.btn.btn-add-brand,
+.btn.btn-add-font {
+  width: auto;
+  height: auto;
+  display: inline-block;
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+/* ============================== 添加品牌 / 字体 ============================== */
+.brand-add, .font-add { margin-top: 10px; }
+.add-brand-panel, .add-font-panel {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--canvas);
+}
+.add-brand-actions, .add-font-actions { margin-top: 6px; }
+.add-brand-panel .field, .add-font-panel .field { margin-bottom: 10px; }
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted-soft);
+}
+
+/* ============================== 预览 ============================== */
+.preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* 撑满 .layout 的高度，再由 dropzone 吃掉扣掉状态行之后的剩余空间 */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* 空态是「一块比画布深一档的奶油色块」，靠色块分层的做法，不靠阴影 */
+.dropzone {
+  position: relative;
+  /* 高度由父级分配，取代原来的 calc(100vh - 210px)：整页锁死在一屏后，
+     那个手算值一旦比实际余量多出几十像素就会被裁掉。 */
+  flex: 1 1 auto;
+  min-height: 320px;
+  /* 虚线用 hairline：它是这套 token 里能压在 surface-card 上的最浅分隔色。
+     常态不给珊瑚色 —— 珊瑚只留给 dragover 和主 CTA。 */
+  border: 2px dashed var(--hairline);
+  border-radius: var(--r-xl);
+  background: var(--surface-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color .18s, background .18s;
+}
+.dropzone.dragover {
+  border-color: var(--primary);
+  background: var(--surface-cream-strong);
+}
+.dropzone.has-image { border-style: solid; border-color: transparent; }
+
+.dz-inner {
+  text-align: center;
+  color: var(--muted);
+  padding: 24px;
+  cursor: pointer;
+  user-select: none;
+}
+.dz-inner svg { display: block; margin: 0 auto 12px; color: var(--muted-soft); }
+.dz-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -.2px;
+  color: var(--ink);
+}
+.dz-sub { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+
+.canvas-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+  cursor: pointer;
+}
+.canvas-wrap.hidden, .hidden { display: none !important; }
+
+/* 照片像摆在奶油桌面上的相纸：圆角 + 极轻的投影 */
+#previewCanvas {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  width: auto;
+  border-radius: var(--r-md);
+  box-shadow: 0 1px 3px rgba(20, 20, 19, .08), 0 12px 32px rgba(20, 20, 19, .12);
+}
+
+.status {
+  margin: 12px 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 20px;
+  flex: none;
+}
+.status.error { color: var(--error); }
+
+/* ============================== Toast ============================== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  padding: 12px 20px;
+  border-radius: var(--r-lg);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-pop);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================== 滚动条 ============================== */
+html, .panel, .select-menu, .canvas-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-cream-strong) transparent;
+}
+html::-webkit-scrollbar,
+.panel::-webkit-scrollbar,
+.select-menu::-webkit-scrollbar,
+.canvas-wrap::-webkit-scrollbar { width: 12px; height: 12px; }
+html::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb,
+.select-menu::-webkit-scrollbar-thumb,
+.canvas-wrap::-webkit-scrollbar-thumb {
+  background: var(--surface-cream-strong);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--r-pill);
+}
+html::-webkit-scrollbar-thumb:hover,
+.panel::-webkit-scrollbar-thumb:hover,
+.select-menu::-webkit-scrollbar-thumb:hover,
+.canvas-wrap::-webkit-scrollbar-thumb:hover { background: var(--muted-soft); background-clip: padding-box; }
+html::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track,
+.select-menu::-webkit-scrollbar-track,
+.canvas-wrap::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================== 响应式 ============================== */
+/* 单列时侧栏和预览不再并排，「只有设置栏滚」这个前提就不成立了，
+   恢复成整页滚动更自然 */
+@media (max-width: 900px) {
+  body { display: block; height: auto; min-height: 100%; overflow: visible; }
+  .app-header { padding: 14px 20px; }
+  .layout { flex-direction: column; padding: 20px 20px 40px; overflow: visible; }
+  .panel { width: 100%; max-height: none; overflow: visible; }
+  .preview { align-self: auto; }
+  .dropzone { flex: none; height: 60vh; min-height: 320px; }
+}

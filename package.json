@@ -1,0 +1,17 @@
+{
+  "name": "exif-photo-watermark-border-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EXIF Frame：解析 EXIF 自动填充相机信息，实时渲染水印边框并批量导出；由本地服务提供本机字体枚举与品牌 Logo 光栅化。",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.22.2",
+    "sharp": "^0.35.3"
+  }
+}

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXIF Frame</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>EXIF Frame</h1>
+  </header>
+
+  <main class="layout">
+    <!-- ================= 设置面板 ================= -->
+    <aside class="panel" id="panel">
+      <div class="panel-head">
+        <span class="panel-title">设置</span>
+      </div>
+
+      <div class="panel-body" id="panelBody">
+        <!-- 相机信息 -->
+        <section class="section">
+          <h2>相机信息</h2>
+
+          <!-- 外层必须是 div 而不是 label：label 会把内部「非交互」元素（Logo 图标 <img>、
+               下拉项 <li>）的点击转发给它的关联控件，也就是本字段第一个可标记后代 ——
+               下面那个显示开关，于是「点图标换品牌」会顺手把「相机品牌」取消勾选。
+               勾选框那一行单独包成 label，保留「点标签文字切换显示」这个与型号 / 焦距
+               等字段一致的交互；下拉框在它之外，点图标不再被转发。 -->
+          <div class="field">
+            <label class="field-label label-check">
+              相机品牌
+              <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="brand" title="在水印中显示"></button>
+            </label>
+            <div class="select" id="brandSelect">
+              <div class="combobox" id="brandCombo">
+                <span class="combo-icon"><img id="brandIcon" alt="" /></span>
+                <input type="text" id="brandInput" placeholder="输入或下拉选择品牌" autocomplete="off" spellcheck="false" />
+                <button class="chev-btn" type="button" id="brandChev" tabindex="-1" title="展开品牌列表">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+              </div>
+              <ul class="select-menu" id="brandMenu"></ul>
+            </div>
+            <div class="brand-add">
+              <button class="btn btn-ghost btn-add-brand" id="btnAddBrand" type="button">＋ 添加品牌</button>
+              <div class="add-brand-panel hidden" id="addBrandPanel">
+                <label class="field">
+                  <span class="field-label">品牌名称（可留空，默认取文件名）</span>
+                  <input type="text" id="addBrandName" placeholder="如 Sigma" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Logo 文件（SVG / PNG / WebP）</span>
+                  <input type="file" id="addBrandFile" accept=".svg,.png,.webp,.jpg,.jpeg,image/svg+xml,image/png,image/webp" />
+                </label>
+                <div class="btn-stack add-brand-actions">
+                  <button class="btn btn-primary" id="btnAddConfirm" type="button">添加</button>
+                  <button class="btn btn-ghost" id="btnAddCancel" type="button">取消</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <label class="field">
+            <span class="field-label label-check">
+              相机型号
+              <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="model" title="在水印中显示"></button>
+            </span>
+            <input type="text" id="inpModel" />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label label-check">
+                焦距
+                <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="focal" title="在水印中显示"></button>
+              </span>
+              <input type="text" id="inpFocal" />
+            </label>
+            <label class="field">
+              <span class="field-label label-check">
+                光圈
+                <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="aperture" title="在水印中显示"></button>
+              </span>
+              <input type="text" id="inpAperture" />
+            </label>
+          </div>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label label-check">
+                快门
+                <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="shutter" title="在水印中显示"></button>
+              </span>
+              <input type="text" id="inpShutter" />
+            </label>
+            <label class="field">
+              <span class="field-label label-check">
+                ISO
+                <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="iso" title="在水印中显示"></button>
+              </span>
+              <input type="text" id="inpIso" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field-label label-check">
+              拍摄时间
+              <button class="cb" type="button" role="checkbox" aria-checked="true" data-show="time" title="在水印中显示"></button>
+            </span>
+            <input type="text" id="inpTime" />
+          </label>
+
+          <button class="btn btn-ghost btn-fill" id="btnRefill" type="button">重新读取 EXIF 填充</button>
+        </section>
+
+        <!-- 水印设置 -->
+        <section class="section">
+          <div class="section-head">
+            <h2>水印设置</h2>
+            <button class="btn btn-ghost btn-reset" id="btnResetWatermark" type="button">复位</button>
+          </div>
+
+          <label class="slider-field">
+            <span class="slider-head">
+              <span class="slider-label">高度</span>
+              <span class="slider-value"><output id="outHeight">8</output>%</span>
+            </span>
+            <input type="range" id="rngHeight" min="4" max="16" step="1" value="8" />
+          </label>
+
+          <label class="slider-field">
+            <span class="slider-head">
+              <span class="slider-label">品牌图片大小</span>
+              <span class="slider-value"><output id="outBrandSize">35</output>%</span>
+            </span>
+            <input type="range" id="rngBrandSize" min="15" max="60" step="1" value="35" />
+          </label>
+
+          <label class="slider-field">
+            <span class="slider-head">
+              <span class="slider-label">字体大小</span>
+              <span class="slider-value"><output id="outFontSize">100</output>%</span>
+            </span>
+            <input type="range" id="rngFontSize" min="50" max="150" step="5" value="100" />
+          </label>
+        </section>
+
+        <!-- 字体 -->
+        <section class="section">
+          <h2>字体</h2>
+          <div class="select" id="fontSelect">
+            <div class="combobox">
+              <input type="text" id="fontInput" placeholder="默认（系统字体）· 输入或下拉选择" autocomplete="off" spellcheck="false" />
+              <button class="chev-btn" type="button" id="fontChev" tabindex="-1" title="展开字体列表">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+            </div>
+            <ul class="select-menu" id="fontMenu"></ul>
+          </div>
+          <p class="hint" id="fontHint">正在枚举本机已安装字体…</p>
+          <div class="font-add">
+            <button class="btn btn-ghost btn-add-font" id="btnAddFont" type="button">＋ 添加字体</button>
+            <div class="add-font-panel hidden" id="addFontPanel">
+              <label class="field">
+                <span class="field-label">字体名称（可留空，自动读取字体文件）</span>
+                <input type="text" id="addFontName" placeholder="如 思源黑体 CN" />
+              </label>
+              <label class="field">
+                <span class="field-label">字体文件（TTF / OTF / TTC / WOFF / WOFF2）</span>
+                <input type="file" id="addFontFile" accept=".ttf,.otf,.ttc,.otc,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2,font/collection" />
+              </label>
+              <div class="btn-stack add-font-actions">
+                <button class="btn btn-primary" id="btnAddFontConfirm" type="button">添加</button>
+                <button class="btn btn-ghost" id="btnAddFontCancel" type="button">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 模板切换 -->
+        <section class="section">
+          <h2>模板</h2>
+          <div class="seg" id="templateSeg">
+            <button class="seg-btn active" data-template="a" type="button">经典</button>
+            <button class="seg-btn" data-template="b" type="button">模糊</button>
+          </div>
+
+          <!-- 只对模板 B 有意义：A 是白底，不存在「深色图标看不清」的问题。
+               切到 B 才显示，避免在 A 下选「全白」把 Logo 染成白底白图。 -->
+          <div class="field logo-ink hidden" id="logoInkField">
+            <span class="field-label">图标颜色</span>
+            <div class="seg" id="logoInkSeg">
+              <button class="seg-btn active" data-logo-mode="white" type="button">全白</button>
+              <button class="seg-btn" data-logo-mode="original" type="button">原色</button>
+            </div>
+            <p class="hint" id="logoInkHint"></p>
+          </div>
+        </section>
+
+        <!-- 导出 -->
+        <section class="section">
+          <h2>导出</h2>
+          <div class="seg" id="formatSeg">
+            <button class="seg-btn active" data-format="image/jpeg" type="button">JPG</button>
+            <button class="seg-btn" data-format="image/png" type="button">PNG</button>
+          </div>
+          <p class="hint">导出保留原始 EXIF 信息</p>
+          <div class="btn-stack">
+            <button class="btn btn-primary" id="btnExport" type="button" disabled>导出当前照片</button>
+            <button class="btn btn-ghost" id="btnBatch" type="button">批量导出文件夹…</button>
+            <input type="file" id="batchInput" accept="image/*" multiple webkitdirectory hidden />
+          </div>
+          <p class="hint" id="batchHint"></p>
+        </section>
+      </div>
+    </aside>
+
+    <!-- ================= 预览区 ================= -->
+    <section class="preview">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" hidden />
+        <div class="dz-inner" id="dzInner">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          <p class="dz-title">拖入照片，或点击选择</p>
+          <p class="dz-sub">支持 JPG / PNG / WebP / TIFF / HEIC · 自动解析 EXIF</p>
+        </div>
+        <div class="canvas-wrap hidden" id="canvasWrap">
+          <canvas id="previewCanvas"></canvas>
+        </div>
+      </div>
+      <p class="status" id="status"></p>
+    </section>
+  </main>
+
+  <script src="vendor/exifr.min.js"></script>
+  <script src="vendor/piexif.min.js"></script>
+  <script src="vendor/jszip.min.js"></script>
+  <script src="vendor/brands-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
